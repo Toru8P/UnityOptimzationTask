@@ -1,40 +1,70 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
 public class UIManager : MonoBehaviour
 {
-    public TextMeshProUGUI hpText;
-    
+    [SerializeField] private TextMeshProUGUI hpText;
     [SerializeField] private PlayerCharacterController bobby;
-    [SerializeField] private GameObject skillsHolder;
-    
+    [SerializeField] private Transform skillsHolder;
+    [SerializeField] private SkillsManager skillsManager;
+
+    private List<SkillButtonUI> _skillButtons = new List<SkillButtonUI>();
+
     public void RefreshHPText(int newHP)
     {
-        hpText.text = newHP.ToString();
+        if (hpText != null)
+            hpText.text = newHP.ToString();
     }
 
     private void Awake()
     {
-        bobby.onTakeDamageEventAction += RefreshHPText;
+        if (bobby != null)
+            bobby.onTakeDamageEventAction += RefreshHPText;
     }
 
     private void Start()
     {
-        hpText.text = bobby.Hp.ToString();
+        if (hpText != null && bobby != null)
+            hpText.text = bobby.Hp.ToString();
+
+        CacheSkillButtons();
     }
 
-    private void Update()
+    private Transform GetSkillsHolderTransform()
     {
-        skillsHolder = GameObject.Find("Skills Group");
-        GameObject[] skillsButtonUI = skillsHolder.GetComponentsInChildren<GameObject>();
-        
-        for (int i = 0; i < skillsButtonUI.Length; i++)
+        GameObject found = GameObject.Find("Skills Group");
+        if (found != null) return found.transform;
+        found = GameObject.Find("Skills");
+        if (found != null) return found.transform;
+        return null;
+    }
+
+    private void CacheSkillButtons()
+    {
+        _skillButtons.Clear();
+        Transform holder = GetSkillsHolderTransform();
+        if (holder == null) return;
+
+        SkillButtonUI[] buttons = holder.GetComponentsInChildren<SkillButtonUI>(true);
+        _skillButtons.AddRange(buttons);
+        for (int i = 0; i < _skillButtons.Count; i++)
         {
-            skillsButtonUI[i].GetComponent<SkillButtonUI>().skillIcon.sprite =  skillsButtonUI[i].GetComponent<SkillButtonUI>().skillIcons[i];
-            skillsButtonUI[i].GetComponent<SkillButtonUI>().skillNameText.text = "Skill " + (i + 1);
+            var btn = _skillButtons[i];
+            btn.SetSkillIndex(i);
+            if (btn.skillIcons != null && i < btn.skillIcons.Length && btn.skillIcon != null)
+                btn.skillIcon.sprite = btn.skillIcons[i];
+            if (btn.skillNameText != null)
+                btn.skillNameText.text = "Skill " + (i + 1);
         }
+
+        if (skillsManager != null)
+            skillsManager.RegisterSkillButtons(_skillButtons);
+    }
+
+    public List<SkillButtonUI> GetCachedSkillButtonsList()
+    {
+        return _skillButtons;
     }
 }

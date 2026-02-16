@@ -1,90 +1,134 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using Unity.AI.Navigation;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
-using UnityEngine.Serialization;
 
 public class PlayerCharacterController : MonoBehaviour
 {
     public event UnityAction<int> onTakeDamageEventAction;
+    public event UnityAction onDeathEventAction;
     [SerializeField] private UnityEvent<int> onTakeDamageEvent;
+    [SerializeField] private UnityEvent onDeathEvent;
 
-    [Header("Navigation")] 
-    private NavMeshAgent navMeshAgent;
-
-    [SerializeField] private Transform waypoint;
+    [Header("Navigation")]
     [SerializeField] private Transform[] pathWaypoints;
-    
-    private Animator animator;
+    [SerializeField] private bool loopPath = true;
+    [SerializeField] private Transform finishPoint;
 
-    public int Hp
+    [Header("Animation")]
+    [SerializeField] private string deathTriggerName = "Death";
+
+    private NavMeshAgent _navMeshAgent;
+    private Animator _animator;
+    private Camera _mainCamera;
+    private Collider _collider;
+
+    private bool _isMoving = true;
+    private bool _isDead;
+    private int _currentWaypointIndex = 0;
+    private bool _goingToFinish;
+    private bool _hasBloodyBoots = true;
+    private float _pathFailRetryTime;
+    private int _hp;
+    private int _startingHp;
+
+    public bool IsDead => _isDead;
+
+    public int Hp { get => _hp; set => _hp = value; }
+    public int CurrentWaypointIndex { get => _currentWaypointIndex; set => _currentWaypointIndex = value; }
+
+    private void Awake()
     {
-        get => hp;
-        set => hp = value;
-    }
-
-    public int CurrentWaypointIndex
-    {
-        get => currentWaypointIndex;
-        set => currentWaypointIndex = value;
-    }
-
-    private bool isMoving = true;
-    private int currentWaypointIndex = 0;
-
-    private bool hasBloodyBoots = true;
-
-
-    private int hp;
-    private int startingHp;
-
-    public void ToggleMoving(bool shouldMove)
-    {
-        isMoving = shouldMove;
-        if (navMeshAgent) navMeshAgent.enabled = shouldMove;
-    }
-
-    public void SetDestination(Transform targetTransformWaypoint)
-    {
-        if (navMeshAgent)
-            navMeshAgent.SetDestination(targetTransformWaypoint.position);
-    }
-
-    public void SetDestination(int waypointIndex)
-    {
-        SetDestination(pathWaypoints[waypointIndex]);
-    }
-
-    public void TakeDamage(int damageAmount)
-    {
-        hp -= damageAmount;
-        float hpPercentLeft = (float) hp / startingHp;
-        animator.SetLayerWeight(1, (1 - hpPercentLeft));
-        onTakeDamageEvent.Invoke(hp);
-        onTakeDamageEventAction?.Invoke(hp);
+        _animator = GetComponent<Animator>();
+        _navMeshAgent = GetComponent<NavMeshAgent>();
+        _mainCamera = Camera.main;
+        _collider = GetComponent<Collider>();
     }
 
     private void Start()
     {
-        hp = 100;
-        animator = GetComponent<Animator>();
-        navMeshAgent = GetComponent<NavMeshAgent>();
-        startingHp = hp;
+        _hp = 100;
+        _startingHp = _hp;
         SetMudAreaCost();
         ToggleMoving(true);
-        SetDestination(pathWaypoints[0]);
+        if (pathWaypoints != null && pathWaypoints.Length > 0)
+            SetDestination(pathWaypoints[0]);
+    }
+
+    public void ToggleMoving(bool shouldMove)
+    {
+        _isMoving = shouldMove;
+        if (_navMeshAgent != null)
+            _navMeshAgent.enabled = shouldMove;
+    }
+
+    public void SetDestination(Transform targetTransformWaypoint)
+    {
+        if (_navMeshAgent != null && _navMeshAgent.isActiveAndEnabled)
+            _navMeshAgent.SetDestination(targetTransformWaypoint.position);
+    }
+
+    public void SetDestination(int waypointIndex)
+    {
+        if (pathWaypoints != null && waypointIndex >= 0 && waypointIndex < pathWaypoints.Length)
+            SetDestination(pathWaypoints[waypointIndex]);
+    }
+
+    public void RefreshPathToCurrentWaypoint()
+    {
+        if (_navMeshAgent == null || !_navMeshAgent.isActiveAndEnabled) return;
+        if (pathWaypoints == null || pathWaypoints.Length == 0) return;
+        int index = _currentWaypointIndex >= pathWaypoints.Length ? 0 : _currentWaypointIndex;
+        _navMeshAgent.ResetPath();
+        _navMeshAgent.SetDestination(pathWaypoints[index].position);
+    }
+
+    public void TakeDamage(int damageAmount)
+    {
+        if (_isDead) return;
+
+        _hp -= damageAmount;
+        _hp = Mathf.Clamp(_hp, 0, _startingHp);
+
+        float hpPercentLeft = _startingHp > 0 ? (float)_hp / _startingHp : 0f;
+        if (_animator != null)
+            _animator.SetLayerWeight(1, 1f - hpPercentLeft);
+
+        onTakeDamageEvent?.Invoke(_hp);
+        onTakeDamageEventAction?.Invoke(_hp);
+
+        if (_hp <= 0)
+            Die();
+    }
+
+    private void Die()
+    {
+        if (_isDead) return;
+        _isDead = true;
+
+        ToggleMoving(false);
+        if (_collider != null)
+            _collider.enabled = false;
+
+        if (_animator != null && !string.IsNullOrEmpty(deathTriggerName))
+            _animator.SetTrigger(deathTriggerName);
+
+        onDeathEvent?.Invoke();
+        onDeathEventAction?.Invoke();
     }
 
     private void SetMudAreaCost()
     {
-        if (hasBloodyBoots)
-        {
-            navMeshAgent.SetAreaCost(3, 1);
-        }
+        if (_hasBloodyBoots && _navMeshAgent != null)
+            _navMeshAgent.SetAreaCost(3, 1);
+    }
+
+    public void OnSkillUsed(int skillIndex)
+    {
+        if (_isDead) return;
+        int heal = skillIndex switch { 0 => 10, 1 => 15, 2 => 20, _ => 10 };
+        TakeDamage(-heal);
     }
 
     [ContextMenu("Take Damage Test")]
@@ -93,39 +137,62 @@ public class PlayerCharacterController : MonoBehaviour
         TakeDamage(10);
     }
 
-
     private void Update()
     {
-        if (isMoving && !navMeshAgent.isStopped && navMeshAgent.remainingDistance <= 0.1f)
-        {
-            currentWaypointIndex++;
-            if (currentWaypointIndex >= pathWaypoints.Length)
-                currentWaypointIndex = 0;
-            SetDestination(pathWaypoints[currentWaypointIndex]);
-        }
+        if (_isDead || _navMeshAgent == null) return;
 
-        if (animator)
-            animator.SetFloat("Speed", navMeshAgent.velocity.magnitude);
-        
-        if (Camera.main != null)
+        if (_isMoving && !_navMeshAgent.isStopped && _navMeshAgent.remainingDistance <= 0.1f)
         {
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            if (Physics.Raycast(ray, out RaycastHit hit, 100f))
+            if (_goingToFinish)
             {
-                //We want to know what the mouse is hovering now
-                Debug.Log($"Hit: {hit.collider.name}");
+                ToggleMoving(false);
+                _goingToFinish = false;
+                _pathFailRetryTime = 0f;
+                return;
             }
+
+            _currentWaypointIndex++;
+            if (pathWaypoints == null || _currentWaypointIndex >= pathWaypoints.Length)
+            {
+                if (loopPath)
+                {
+                    _currentWaypointIndex = 0;
+                    SetDestination(pathWaypoints[_currentWaypointIndex]);
+                }
+                else
+                {
+                    if (finishPoint != null)
+                    {
+                        _goingToFinish = true;
+                        _navMeshAgent.SetDestination(finishPoint.position);
+                    }
+                    else
+                        ToggleMoving(false);
+                }
+            }
+            else
+                SetDestination(pathWaypoints[_currentWaypointIndex]);
+            _pathFailRetryTime = 0f;
         }
 
-    }
-    
-    private void OnEnable()
-    {
-        
-    }
+        if (_isMoving && pathWaypoints != null && pathWaypoints.Length > 0 && !_navMeshAgent.pathPending)
+        {
+            bool pathInvalid = !_navMeshAgent.hasPath || _navMeshAgent.pathStatus == UnityEngine.AI.NavMeshPathStatus.PathPartial;
+            if (pathInvalid)
+            {
+                _pathFailRetryTime += Time.deltaTime;
+                if (_pathFailRetryTime >= 1.5f)
+                {
+                    _pathFailRetryTime = 0f;
+                    RefreshPathToCurrentWaypoint();
+                }
+            }
+            else
+                _pathFailRetryTime = 0f;
+        }
 
-    private void OnDisable()
-    {
-        
+        if (_animator != null)
+            _animator.SetFloat("Speed", _navMeshAgent.velocity.magnitude);
+
     }
 }

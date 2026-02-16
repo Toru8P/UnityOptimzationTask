@@ -1,6 +1,3 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
@@ -10,33 +7,45 @@ public class LevelManager : MonoBehaviour
     [SerializeField] private AssetReference sectorAsset;
     [SerializeField] private Transform targetTransform;
 
-    private GameObject loadedSector;
+    private GameObject _loadedSector;
+    private AsyncOperationHandle<GameObject> _loadHandle;
+
     public void LoadAndGenerateSector()
     {
-        AsyncOperationHandle<GameObject> asyncOperation = Addressables.InstantiateAsync(sectorAsset, targetTransform.position, Quaternion.identity);
-        asyncOperation.Completed +=  AsyncOperationOnCompleted;
-    }
-    
-    public void GenerateSector()
-    {
-        AsyncOperationHandle<GameObject> asyncOperation = Addressables.InstantiateAsync(loadedSector, targetTransform.position, Quaternion.identity);
-        asyncOperation.Completed +=  AsyncOperationOnCompleted;
+        var handle = Addressables.InstantiateAsync(sectorAsset, targetTransform.position, Quaternion.identity);
+        handle.Completed += OnInstantiateCompleted;
     }
 
-    private void AsyncOperationOnCompleted(AsyncOperationHandle<GameObject> obj)
+    public void GenerateSector()
     {
-       Debug.Log("Instntiate");
+        if (_loadedSector == null) return;
+        var handle = Addressables.InstantiateAsync(_loadedSector, targetTransform.position, Quaternion.identity);
+        handle.Completed += OnInstantiateCompleted;
+    }
+
+    private void OnInstantiateCompleted(AsyncOperationHandle<GameObject> handle)
+    {
+        if (handle.Status == AsyncOperationStatus.Succeeded) { }
     }
 
     public void LoadSector()
     {
-        AsyncOperationHandle<GameObject> asyncOperationHandle = Addressables.LoadAssetAsync<GameObject>(sectorAsset);
-        asyncOperationHandle.Completed +=  LoadAsyncComplete;
+        if (_loadHandle.IsValid())
+            Addressables.Release(_loadHandle);
+
+        _loadHandle = Addressables.LoadAssetAsync<GameObject>(sectorAsset);
+        _loadHandle.Completed += OnLoadCompleted;
     }
 
-    private void LoadAsyncComplete(AsyncOperationHandle<GameObject> asyncOperationHandle)
+    private void OnLoadCompleted(AsyncOperationHandle<GameObject> handle)
     {
-       Debug.Log("Loading complete!");
-       loadedSector = asyncOperationHandle.Result;
+        if (handle.Status == AsyncOperationStatus.Succeeded)
+            _loadedSector = handle.Result;
+    }
+
+    private void OnDestroy()
+    {
+        if (_loadHandle.IsValid())
+            Addressables.Release(_loadHandle);
     }
 }
