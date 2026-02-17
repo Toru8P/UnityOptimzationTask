@@ -62,7 +62,11 @@ namespace NHance.Assets
         void Awake()
         {
             if(focus == null && TryToFindCharacter)
-                focus = FindObjectOfType<NHCharacterController>().gameObject.transform;
+            {
+                var character = FindFirstObjectByType<NHCharacterController>();
+                if (character != null)
+                    focus = character.gameObject.transform;
+            }
             _transform = transform;
             regularCamera = GetComponent<Camera>();
             focusPoint = (focus != null ? focus.position : Vector3.zero) + focusOffset;
