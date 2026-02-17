@@ -2,7 +2,6 @@ using System;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Events;
-using UnityEngine.InputSystem;
 
 public class PlayerCharacterController : MonoBehaviour
 {
@@ -29,7 +28,6 @@ public class PlayerCharacterController : MonoBehaviour
     private int _currentWaypointIndex = 0;
     private bool _goingToFinish;
     private bool _hasBloodyBoots = true;
-    private float _pathFailRetryTime;
     private int _hp;
     private int _startingHp;
 
@@ -73,15 +71,6 @@ public class PlayerCharacterController : MonoBehaviour
     {
         if (pathWaypoints != null && waypointIndex >= 0 && waypointIndex < pathWaypoints.Length)
             SetDestination(pathWaypoints[waypointIndex]);
-    }
-
-    public void RefreshPathToCurrentWaypoint()
-    {
-        if (_navMeshAgent == null || !_navMeshAgent.isActiveAndEnabled) return;
-        if (pathWaypoints == null || pathWaypoints.Length == 0) return;
-        int index = _currentWaypointIndex >= pathWaypoints.Length ? 0 : _currentWaypointIndex;
-        _navMeshAgent.ResetPath();
-        _navMeshAgent.SetDestination(pathWaypoints[index].position);
     }
 
     public void TakeDamage(int damageAmount)
@@ -147,7 +136,6 @@ public class PlayerCharacterController : MonoBehaviour
             {
                 ToggleMoving(false);
                 _goingToFinish = false;
-                _pathFailRetryTime = 0f;
                 return;
             }
 
@@ -172,23 +160,6 @@ public class PlayerCharacterController : MonoBehaviour
             }
             else
                 SetDestination(pathWaypoints[_currentWaypointIndex]);
-            _pathFailRetryTime = 0f;
-        }
-
-        if (_isMoving && pathWaypoints != null && pathWaypoints.Length > 0 && !_navMeshAgent.pathPending)
-        {
-            bool pathInvalid = !_navMeshAgent.hasPath || _navMeshAgent.pathStatus == UnityEngine.AI.NavMeshPathStatus.PathPartial;
-            if (pathInvalid)
-            {
-                _pathFailRetryTime += Time.deltaTime;
-                if (_pathFailRetryTime >= 1.5f)
-                {
-                    _pathFailRetryTime = 0f;
-                    RefreshPathToCurrentWaypoint();
-                }
-            }
-            else
-                _pathFailRetryTime = 0f;
         }
 
         if (_animator != null)

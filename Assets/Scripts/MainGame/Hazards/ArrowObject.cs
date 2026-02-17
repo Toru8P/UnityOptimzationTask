@@ -23,7 +23,7 @@ public class ArrowObject : MonoBehaviour
     private void OnEnable()
     {
         _lifetimeLeft = maxLifetime;
-        gameObject.layer = PhysicsOptimization.PROJECTILE_LAYER;
+        gameObject.layer = 8; // Projectile
     }
 
     private void EnsureRigidbodyAndCollider()
