@@ -1,4 +1,5 @@
 using System;
+using MainGame.Characters;
 using MainGame.Hazards;
 using UnityEngine;
 using Random = UnityEngine.Random;

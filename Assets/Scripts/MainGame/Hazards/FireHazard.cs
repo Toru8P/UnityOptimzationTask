@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using MainGame.Characters;
 using UnityEngine;
 using UnityEngine.Events;
 using Debug = UnityEngine.Debug;

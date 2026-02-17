@@ -1,3 +1,5 @@
+using System;
+using MainGame.Characters;
 using TMPro;
 using UnityEngine;
 
@@ -17,12 +19,19 @@ namespace MainGame.Managers
 
         private void Awake()
         {
-            bobby.onTakeDamageEventAction += RefreshHPText;
             hpText.text = bobby.Hp.ToString();
-
-
         }
-    
+
+        private void OnEnable()
+        {
+            bobby.SubscribeToTakeDamageEvent(RefreshHPText);
+        }
+
+        private void OnDisable()
+        {
+            bobby.UnsubscribeToTakeDamageEvent(RefreshHPText);
+        }
+
         private void Update()
         {
             SkillButtonUI[] _skillsButtonUI = skillsHolder.GetComponentsInChildren<SkillButtonUI>();
