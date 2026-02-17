@@ -1,47 +1,54 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
+using System.Diagnostics;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.Serialization;
+using Debug = UnityEngine.Debug;
 
-public class FireHazard : MonoBehaviour
+namespace MainGame.Hazards
 {
-    public event UnityAction<FireEnteredEventArgs> onCharacterEnteredAction;
-    
-    [HideInInspector] public FireHazardScriptableObject fireHazardData;
-
-    [SerializeField]
-    private UnityEvent<FireEnteredEventArgs> onCharacterEntered = new UnityEvent<FireEnteredEventArgs>();
-
-    // public void SetScriptableData(FireHazardScriptableObject fireHazardScriptableObject)
-    // {
-    //     fireHazardData = fireHazardScriptableObject;
-    // }
-    // private void Start()
-    // { 
-    //     if(onCharacterEnteredAction != null)
-    //        onCharacterEntered.AddListener(onCharacterEnteredAction);
-    // }
-
-    private void OnTriggerEnter(Collider other)
+    public class FireHazard : MonoBehaviour
     {
-        if (other.gameObject.CompareTag("PlayerCharacter"))
+        [SerializeField] private UnityEvent<FireEnteredEventArgs> onCharacterEntered = new UnityEvent<FireEnteredEventArgs>();
+
+        private FireHazardScriptableObject _fireHazardData;
+        
+        public void Subscribe(UnityAction<FireEnteredEventArgs> input)
         {
+            onCharacterEntered.AddListener(input);
+        }
+        
+        public void Unsubscribe(UnityAction<FireEnteredEventArgs> input)
+        {
+            onCharacterEntered.RemoveListener(input);
+        }
+
+        public void Setup(FireHazardScriptableObject fireHazardData)
+        {
+            _fireHazardData = fireHazardData;
+        }
+
+        private void OnTriggerEnter(Collider other)
+        {
+            if (!other.gameObject.CompareTag("PlayerCharacter")) return;
             Debug.Log("Player entered this hazard");
+
+            if (!_fireHazardData)
+            {
+                throw new Exception("Someone tried to enter this hazard but data wasn't set");
+            }
+                
             FireEnteredEventArgs fireEnteredEventArgs = new FireEnteredEventArgs
             {
-                damageDealt = fireHazardData.GetRandomFireDamage(),
-                targetCharacterController = other.GetComponent<PlayerCharacterController>()
+                DamageDealt = _fireHazardData.GetRandomFireDamage(),
+                TargetCharacterController = other.GetComponent<PlayerCharacterController>()
             };
             onCharacterEntered?.Invoke(fireEnteredEventArgs);
-            onCharacterEnteredAction.Invoke(fireEnteredEventArgs);
         }
     }
-}
 
-public class FireEnteredEventArgs
-{
-    public int damageDealt;
-    public PlayerCharacterController targetCharacterController;
+    public class FireEnteredEventArgs
+    {
+        public int DamageDealt;
+        public PlayerCharacterController TargetCharacterController;
+    }
 }

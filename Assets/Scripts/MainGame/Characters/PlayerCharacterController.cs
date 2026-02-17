@@ -41,6 +41,12 @@ public class PlayerCharacterController : MonoBehaviour
 
     private int hp;
     private int startingHp;
+    private Camera _camera;
+
+    private void Awake()
+    {
+        _camera = Camera.main;
+    }
 
     public void ToggleMoving(bool shouldMove)
     {
@@ -107,9 +113,9 @@ public class PlayerCharacterController : MonoBehaviour
         if (animator)
             animator.SetFloat("Speed", navMeshAgent.velocity.magnitude);
         
-        if (Camera.main != null)
+        if (_camera != null)
         {
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            Ray ray = _camera.ScreenPointToRay(Mouse.current.position.ReadValue());
             if (Physics.Raycast(ray, out RaycastHit hit, 100f))
             {
                 //We want to know what the mouse is hovering now

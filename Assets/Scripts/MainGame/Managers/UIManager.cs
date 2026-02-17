@@ -1,40 +1,37 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
-public class UIManager : MonoBehaviour
+namespace MainGame.Managers
 {
-    public TextMeshProUGUI hpText;
+    public class UIManager : MonoBehaviour
+    {
+        public TextMeshProUGUI hpText;
     
-    [SerializeField] private PlayerCharacterController bobby;
-    [SerializeField] private GameObject skillsHolder;
-    
-    public void RefreshHPText(int newHP)
-    {
-        hpText.text = newHP.ToString();
-    }
+        [SerializeField] private PlayerCharacterController bobby;
+        [SerializeField] private GameObject skillsHolder;
 
-    private void Awake()
-    {
-        bobby.onTakeDamageEventAction += RefreshHPText;
-    }
-
-    private void Start()
-    {
-        hpText.text = bobby.Hp.ToString();
-    }
-
-    private void Update()
-    {
-        skillsHolder = GameObject.Find("Skills Group");
-        GameObject[] skillsButtonUI = skillsHolder.GetComponentsInChildren<GameObject>();
-        
-        for (int i = 0; i < skillsButtonUI.Length; i++)
+        public void RefreshHPText(int newHP)
         {
-            skillsButtonUI[i].GetComponent<SkillButtonUI>().skillIcon.sprite =  skillsButtonUI[i].GetComponent<SkillButtonUI>().skillIcons[i];
-            skillsButtonUI[i].GetComponent<SkillButtonUI>().skillNameText.text = "Skill " + (i + 1);
+            hpText.text = newHP.ToString();
+        }
+
+        private void Awake()
+        {
+            bobby.onTakeDamageEventAction += RefreshHPText;
+            hpText.text = bobby.Hp.ToString();
+
+
+        }
+    
+        private void Update()
+        {
+            SkillButtonUI[] _skillsButtonUI = skillsHolder.GetComponentsInChildren<SkillButtonUI>();
+
+            for (int i = 0; i < _skillsButtonUI.Length; i++)
+            {
+                _skillsButtonUI[i].skillIcon.sprite =  _skillsButtonUI[i].skillIcons[i];
+                _skillsButtonUI[i].skillNameText.text = "Skill " + (i + 1);
+            }
         }
     }
 }

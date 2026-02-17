@@ -1,11 +1,13 @@
-using System;
 using UnityEngine;
 
-public class SkillsManager : MonoBehaviour
+namespace MainGame.Managers
 {
-    [SerializeField] UIManager uiManager;
-    private void Start()
+    public class SkillsManager : MonoBehaviour
     {
+        [SerializeField] UIManager uiManager;
+        private void Start()
+        {
         
+        }
     }
 }
