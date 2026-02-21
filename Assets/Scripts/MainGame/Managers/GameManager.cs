@@ -1,30 +1,46 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
+using MainGame.Characters;
+using MainGame.Hazards;
 using UnityEngine;
-using UnityEngine.Serialization;
 using Random = UnityEngine.Random;
 
-public class GameManager : MonoBehaviour
+namespace MainGame.Managers
 {
-    public PlayerCharacterController playerCharacterController;
-    [SerializeField] private FireHazardScriptableObject[] fireHazardScriptableObjects;
-    [SerializeField] private FireHazard[] fireHazards;
-
-    private void Start()
+    public class GameManager : MonoBehaviour
     {
-        foreach (FireHazard fireHazard in fireHazards)
+        public PlayerCharacterController playerCharacterController;
+        [SerializeField] private FireHazardScriptableObject[] fireHazardScriptableObjects;
+        [SerializeField] private FireHazard[] fireHazards;
+
+        private void Awake()
         {
-            fireHazard.fireHazardData = 
-                fireHazardScriptableObjects[Random.Range(0, fireHazardScriptableObjects.Length)];
-            fireHazard.onCharacterEnteredAction += HandleCharacterEnteredFire;
+            foreach (FireHazard fireHazard in fireHazards)
+            {
+                fireHazard.Setup(fireHazardScriptableObjects[Random.Range(0, fireHazardScriptableObjects.Length)]);
+            }
         }
-      
-    }
 
-    public void HandleCharacterEnteredFire(FireEnteredEventArgs args)
-    {
-        args.targetCharacterController.TakeDamage(args.damageDealt);
-    }
+        private void OnEnable()
+        {
+            foreach (FireHazard fireHazard in fireHazards)
+            {
+                fireHazard.Subscribe(HandleCharacterEnteredFire);
+            }
+        }
+        
+        private void OnDisable()
+        {
+            foreach (FireHazard fireHazard in fireHazards)
+            {
+                fireHazard.Unsubscribe(HandleCharacterEnteredFire);
+            }
+      
+        }
+
+        private static void HandleCharacterEnteredFire(FireEnteredEventArgs args)
+        {
+            args.TargetCharacterController.TakeDamage(args.DamageDealt);
+        }
     
+    }
 }

@@ -1,3 +1,4 @@
+using MainGame.Hazards;
 using UnityEditor;
 using UnityEngine;
 

@@ -24024,7 +24024,7 @@ PrefabInstance:
         type: 3}
       propertyPath: fireHazardData
       value: 
-      objectReference: {fileID: 11400000, guid: 29e5d4c1487e0d146bce5af696d2d734,
+      objectReference: {fileID: 11400000, guid: 64cf5012ead0b7642a86b2e05a38938e,
         type: 2}
     - target: {fileID: 794181239830873258, guid: 917d8b68eb2c4c941a7303611e8c74c4,
         type: 3}
