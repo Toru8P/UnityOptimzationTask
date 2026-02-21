@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace MainGame.Hazards
@@ -6,6 +7,9 @@ namespace MainGame.Hazards
     {
         public float speed;
         public float damage;
+        public float endTime;
+
+        private float currentTime;
     
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start()
@@ -17,6 +21,12 @@ namespace MainGame.Hazards
         void FixedUpdate()
         {
             transform.Translate(Vector3.forward * speed * Time.deltaTime);
+        }
+
+        private void LateUpdate()
+        {
+            currentTime += Time.deltaTime;
+            if (currentTime >= endTime) Destroy(gameObject);
         }
     }
 }

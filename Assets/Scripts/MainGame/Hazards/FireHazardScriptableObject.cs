@@ -13,7 +13,7 @@ namespace MainGame.Hazards
         public int GetRandomFireDamage()
         {
             int randomDamage = Random.Range(minimumDamage, maximumDamage + 1);
-            Debug.Log("Random damage is " + randomDamage);
+            // Debug.Log("Random damage is " + randomDamage);
             return randomDamage;
         }
     }

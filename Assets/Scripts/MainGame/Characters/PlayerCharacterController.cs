@@ -120,7 +120,7 @@ namespace MainGame.Characters
                 if (Physics.Raycast(ray, out RaycastHit hit, 100f))
                 {
                     //We want to know what the mouse is hovering now
-                    Debug.Log($"Hit: {hit.collider.name}");
+                    // Debug.Log($"Hit: {hit.collider.name}");
                 }
             }
 

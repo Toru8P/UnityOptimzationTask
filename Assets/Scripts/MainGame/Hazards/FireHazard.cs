@@ -31,7 +31,7 @@ namespace MainGame.Hazards
         private void OnTriggerEnter(Collider other)
         {
             if (!other.gameObject.CompareTag("PlayerCharacter")) return;
-            Debug.Log("Player entered this hazard");
+            // Debug.Log("Player entered this hazard");
 
             if (!_fireHazardData)
             {

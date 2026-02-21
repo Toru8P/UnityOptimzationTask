@@ -50,12 +50,12 @@ public class ConvertMaterialsToURP : EditorWindow
         {
             EditorGUILayout.HelpBox("\n  For converted materials to URP of the Stylized Character assets we recommend to change 'Sorting Priority' Parameter for the layered materials like Body for proper rendering of the pants/gloves, etc. in 'Advanced Options' Foldout menu of the material.\n" +
                            "\n  Recommended values on Sorting Priority\n\n" +
-                           "  0: •Body\n" + "      •Head\n\n" +
-                           "  1: •Body_Add\n" + "      •Head_Add\n\n" +
-                           "  2: •Body_Cloth\n" + "      •UH (Underhair)\n\n" +
-                           "  3: •Chest\n\n" +
-                           "  4: •Pants\n\n" +
-                           "  5: •Gloves\n", MessageType.Info);
+                           "  0: ï¿½Body\n" + "      ï¿½Head\n\n" +
+                           "  1: ï¿½Body_Add\n" + "      ï¿½Head_Add\n\n" +
+                           "  2: ï¿½Body_Cloth\n" + "      ï¿½UH (Underhair)\n\n" +
+                           "  3: ï¿½Chest\n\n" +
+                           "  4: ï¿½Pants\n\n" +
+                           "  5: ï¿½Gloves\n", MessageType.Info);
         }
     }
 
@@ -72,19 +72,19 @@ public class ConvertMaterialsToURP : EditorWindow
             string relativePath = "Assets" + materialFile.Replace(Application.dataPath, "").Replace('\\', '/');
             Material material = AssetDatabase.LoadAssetAtPath<Material>(relativePath);
 
-            if (material != null)
+            if (material)
             {
                 if (ConvertMaterial(material))
                 {
                     convertedMaterialsCount++;
                     EditorUtility.SetDirty(material);
-                    Debug.Log("Converted Material: " + relativePath, material);
+                    // Debug.Log("Converted Material: " + relativePath, material);
                 }
             }
         }
         AssetDatabase.StopAssetEditing();
         AssetDatabase.SaveAssets();
-        Debug.Log($"Conversion complete. Converted {convertedMaterialsCount} materials to URP.");
+        // Debug.Log($"Conversion complete. Converted {convertedMaterialsCount} materials to URP.");
     }
 
     private bool ConvertMaterial(Material material)
@@ -98,11 +98,11 @@ public class ConvertMaterialsToURP : EditorWindow
             {
                 material.SetTexture("_BaseMap", OldMat.GetTexture("_MainTex"));
                 material.SetColor("_BaseColor", OldMat.GetColor("_Color"));
-                Debug.Log("Albedo and Color transferred successfully.");
+                // Debug.Log("Albedo and Color transferred successfully.");
             }
             else
             {
-                Debug.Log("Failed to find _MainTex or _BaseMap properties.");
+                // Debug.Log("Failed to find _MainTex or _BaseMap properties.");
             }
             if (OldMat.HasProperty("_Glossiness"))
             {
