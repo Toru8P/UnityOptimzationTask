@@ -1,0 +1,16 @@
+{
+    "name": "EditorScripting",
+    "rootNamespace": "",
+    "references": [
+        "GUID:301c3ad791f2b0b4195936bd6ba4ebfc"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

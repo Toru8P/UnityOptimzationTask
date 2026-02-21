@@ -24,7 +24,7 @@ namespace MainGame.Managers
 
         private void AsyncOperationOnCompleted(AsyncOperationHandle<GameObject> obj)
         {
-            Debug.Log("Instntiate");
+            // Debug.Log("Instntiate");
         }
 
         public void LoadSector()
